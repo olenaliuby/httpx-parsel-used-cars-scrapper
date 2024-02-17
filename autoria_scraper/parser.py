@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 
 from parsel import Selector
-from items import CarItem, PhoneNumberItem
+from autoria_scraper.items import CarItem, PhoneNumberItem
 
 
 class UsedCarParser:
@@ -61,18 +61,19 @@ class UsedCarParser:
     @staticmethod
     def get_images_count(selector: Selector) -> int:
         """Get the number of images of the car from the page."""
-
         images_count_text = selector.css(
             "#photosBlock .preview-gallery.mhide .action_disp_all_block a.show-all::text"
         ).get()
+
         if images_count_text is None:
             images_count_text = selector.css(
                 "#photosBlock div.gallery-order.carousel div.count-photo.left span span.dhide::text"
             ).get()
 
-        match = re.search(r"\d+", images_count_text)
-        if match:
-            return int(match.group())
+        if images_count_text and isinstance(images_count_text, str):
+            match = re.search(r"\d+", images_count_text)
+            if match:
+                return int(match.group())
 
         return 0
 
@@ -109,7 +110,7 @@ class PhoneNumberParser:
 
     @staticmethod
     def get_phone_numbers_url(
-            data_hash: str, data_auto_id: str, data_expires: str
+        data_hash: str, data_auto_id: str, data_expires: str
     ) -> str:
         return f"https://auto.ria.com/users/phones/{data_auto_id}/?hash={data_hash}&expires={data_expires}"
 
