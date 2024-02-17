@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+  db:
+    image: postgres:14-alpine
+    volumes:
+      - used-car-scrapper-autoria-db:/var/lib/postgresql/data/
+    ports:
+      - "8432:5432"
+    env_file:
+      - .env
+
+volumes:
+  used-car-scrapper-autoria-db:
