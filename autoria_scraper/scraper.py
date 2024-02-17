@@ -1,4 +1,5 @@
 """Scrape car details from auto.ria.com"""
+
 import json
 import logging
 
@@ -8,9 +9,8 @@ from typing import Generator
 import httpx
 import asyncio
 from parsel import Selector
-from parser import UsedCarParser, PhoneNumberParser
-from items import CarItem
-
+from autoria_scraper.parser import UsedCarParser, PhoneNumberParser
+from autoria_scraper.items import CarItem
 
 setup_logging()
 
@@ -20,10 +20,20 @@ class UsedCarScraper:
         self.base_url = "https://auto.ria.com/uk/car/used/"
         self.allowed_domains = ["auto.ria.com"]
 
-    async def fetch(self, url: str) -> str:
+    async def fetch(self, url: str, timeout: float = 10.0) -> str:
         async with httpx.AsyncClient() as client:
-            response = await client.get(url)
-            return response.text
+            try:
+                response = await client.get(url, timeout=timeout)
+                response.raise_for_status()
+                return response.text
+            except httpx.RequestError as exc:
+                logging.error(
+                    f"An error occurred while requesting {exc.request.url!r}."
+                )
+            except httpx.HTTPStatusError as exc:
+                logging.error(
+                    f"Error response {exc.response.status_code} while requesting {exc.request.url!r}."
+                )
 
     async def scrape_car_details(self, car_url: str) -> CarItem:
         html = await self.fetch(car_url)
@@ -42,14 +52,19 @@ class UsedCarScraper:
                 data_hash, data_auto_id, data_expires
             )
             phone_numbers_response = await self.fetch(phone_numbers_url)
-            try:
-                phone_numbers_data = json.loads(phone_numbers_response)
-                car_item.phone_numbers = PhoneNumberParser.parse_phone_numbers(
-                    phone_numbers_data
-                )
-                logging.info(f"Fetched phone numbers for {car_item.url}")
-            except json.JSONDecodeError:
-                logging.error("Error parsing JSON from the phone numbers response")
+
+            if phone_numbers_response:
+                try:
+                    phone_numbers_data = json.loads(phone_numbers_response)
+                    car_item.phone_numbers = PhoneNumberParser.parse_phone_numbers(
+                        phone_numbers_data
+                    )
+                    logging.info(f"Fetched phone numbers for {car_item.url}")
+                except json.JSONDecodeError:
+                    logging.error("Error parsing JSON from the phone numbers response")
+                    car_item.phone_numbers = []
+            else:
+                logging.error("Received empty response for phone numbers")
                 car_item.phone_numbers = []
 
         return car_item
