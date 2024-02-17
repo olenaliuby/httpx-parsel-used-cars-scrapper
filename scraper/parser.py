@@ -19,7 +19,7 @@ class UsedCarParser:
                 .re_first(r"(\d+\s*\d+)")
                 .replace(" ", "")
             ),
-            odometer=self.get_odonometer(selector),
+            odometer=self.get_odometer(selector),
             username=UsedCarParser.get_user_name(selector),
             image_url=selector.css(
                 "#photosBlock div.photo-620x465 picture img::attr(src)"
@@ -33,7 +33,7 @@ class UsedCarParser:
         return car_item
 
     @staticmethod
-    def get_odonometer(selector: Selector) -> int:
+    def get_odometer(selector: Selector) -> int:
         """Get the odometer reading from the page."""
         odometer = selector.css("div.base-information span.size18::text").re_first(
             r"(\d+)"
