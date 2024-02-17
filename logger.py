@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 def setup_logging() -> None:
-    log_directory = os.path.join(os.path.dirname(__file__), 'logs')
+    log_directory = os.path.join(os.path.dirname(__file__), "logs")
     os.makedirs(log_directory, exist_ok=True)
 
     current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -13,8 +13,5 @@ def setup_logging() -> None:
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[
-            logging.FileHandler(log_filename),
-            logging.StreamHandler()
-        ]
+        handlers=[logging.FileHandler(log_filename), logging.StreamHandler()],
     )
