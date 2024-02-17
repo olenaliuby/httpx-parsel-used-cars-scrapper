@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 
 from parsel import Selector
-from items import CarItem
+from items import CarItem, PhoneNumberItem
 
 
 class UsedCarParser:
@@ -95,3 +95,29 @@ class UsedCarParser:
             return car_vin.strip()
 
         return None
+
+
+class PhoneNumberParser:
+    @staticmethod
+    def extract_phone_number_info(selector: Selector) -> tuple[str, str, str]:
+        script_tag = selector.css('[class^="js-user-secure"]')
+        data_auto_id = selector.css("body::attr(data-auto-id)").get()
+        data_hash = script_tag.xpath("@data-hash").get()
+        data_expires = script_tag.xpath("@data-expires").get()
+
+        return data_hash, data_expires, data_auto_id
+
+    @staticmethod
+    def get_phone_numbers_url(
+            data_hash: str, data_auto_id: str, data_expires: str
+    ) -> str:
+        return f"https://auto.ria.com/users/phones/{data_auto_id}/?hash={data_hash}&expires={data_expires}"
+
+    @staticmethod
+    def parse_phone_numbers(response: dict) -> list[PhoneNumberItem]:
+        if not response["phones"]:
+            return []
+        phone_numbers = [
+            phone["phoneFormatted"] for phone in response.get("phones", [])
+        ]
+        return [PhoneNumberItem(phone_number=phone) for phone in phone_numbers]
