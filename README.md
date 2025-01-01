@@ -1,8 +1,3 @@
-Based on the updated information that you are now using `httpx` for making HTTP requests and `parsel` for parsing HTML
-content, I'll revise the README to reflect these changes:
-
----
-
 # Used Cars Scraper
 
 ## Project Overview
